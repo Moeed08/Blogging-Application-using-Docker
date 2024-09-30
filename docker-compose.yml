@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: blog_database 
+    environment:
+      POSTGRES_USER: bloguser
+      POSTGRES_PASSWORD: blogpass
+      POSTGRES_DB: blogdb
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - blog-network
+
+  admin:
+    image: dpage/pgadmin4
+    container_name: blog_admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - blog-network
+
+  blogapp:
+    build: ./blogapp
+    container_name: blog_application
+    ports:
+      - "5000:5000"
+    environment:
+      POSTGRES_DB: blogdb
+      POSTGRES_USER: bloguser
+      POSTGRES_PASSWORD: blogpass
+      POSTGRES_HOST: postgres
+    depends_on:
+      - postgres
+    networks:
+      - blog-network
+
+networks:
+  blog-network:
+    driver: bridge
